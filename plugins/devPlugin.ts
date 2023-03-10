@@ -4,23 +4,15 @@ import { spawn } from 'node:child_process'
 import type { AddressInfo } from 'node:net'
 import electron from 'electron'
 
-interface Options {
-    entry: string,
-    outfile: string
-}
-
-export function devPlugin(ops: Options): PluginOption {
-
-    const { entry, outfile } = ops;
-
+export function devPlugin(): PluginOption {
     return {
         name: 'dev-plugin',
         configureServer(server) {
             esbuild.buildSync({
-                entryPoints: [entry],
+                entryPoints: ['./electron/main/index.ts'],
                 bundle: true,
                 platform: 'node',
-                outfile,
+                outfile: './dist/main/index.js',
                 external: ["electron"]
             })
 
@@ -28,7 +20,7 @@ export function devPlugin(ops: Options): PluginOption {
                 server.httpServer.once("listening", () => {
                     const addressInfo = server.httpServer.address() as AddressInfo;
                     const httpAddress = `http://localhost:${addressInfo.port}`;
-                    const electronProcess = spawn(electron.toString(), [outfile, httpAddress], {
+                    const electronProcess = spawn(electron.toString(), ['./dist/main/index.js', httpAddress], {
                         cwd: process.cwd(),
                         stdio: 'inherit'
                     });
